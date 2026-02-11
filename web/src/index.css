@@ -1,0 +1,35 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
+}
+
+body {
+  background-color: #2a1810; /* OSRS background – fills viewport */
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary, #8b6914);
+  outline-offset: 2px;
+}

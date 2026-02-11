@@ -1,0 +1,30 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.idea/
+*.apk
+*.aab
+*.dex
+
+# Kotlin
+*.class
+*.jar
+*.war
+out/
+
+# Web (Vite / Node)
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Cursor / IDE (optional)
+.cursor/
