@@ -23,7 +23,7 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
       <div className="card" style={{ marginBottom: "1rem" }}>
         <h2 className="screen-title" style={{ margin: "0 0 0.5rem" }}>About</h2>
         <p className="card-muted" style={{ margin: 0, textAlign: "center" }}>
-          Phlick is an Old School RuneScape–inspired prayer flick trainer. Practice timing protection prayers against magic, ranged, and melee attacks, including 1-tick flicking and reactive monsters.
+          Phlick is an Old School RuneScape–inspired prayer flick trainer. Practice timing protection prayers against magic, ranged, and melee attacks, including 1-tick flicking and reactive type monsters.
         </p>
       </div>
 
