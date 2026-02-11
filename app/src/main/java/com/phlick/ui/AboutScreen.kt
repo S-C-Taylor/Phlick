@@ -70,7 +70,7 @@ fun AboutScreen(
                 Text(
                     text = "Phlick is an Old School RuneScape–inspired prayer flick trainer. " +
                         "Practice timing protection prayers against magic, ranged, and melee attacks, " +
-                        "including 1-tick flicking and reactive monsters.",
+                        "including 1-tick flicking and reactive type monsters.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
