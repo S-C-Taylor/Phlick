@@ -16,8 +16,11 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
       <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 0.25rem" }}>
         Phlick
       </h1>
-      <p style={{ color: "var(--on-surface-variant)", margin: "0 0 1.5rem", fontSize: "1rem" }}>
+      <p style={{ color: "var(--on-surface-variant)", margin: "0 0 0.25rem", fontSize: "1rem" }}>
         Prayer Flick Trainer
+      </p>
+      <p style={{ color: "var(--on-surface-variant)", margin: "0 0 1.5rem", fontSize: "0.875rem" }}>
+        Version {__APP_VERSION__}
       </p>
 
       <div className="card" style={{ marginBottom: "1rem" }}>

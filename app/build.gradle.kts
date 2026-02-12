@@ -3,21 +3,29 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Semantic version (MAJOR.MINOR.PATCH); versionCode is derived for Play Store
+val versionMajor = 1
+val versionMinor = 0
+val versionPatch = 2
+val versionNameSemantic = "$versionMajor.$versionMinor.$versionPatch"
+val versionCodeSemantic = versionMajor * 10000 + versionMinor * 100 + versionPatch
+
 android {
     namespace = "com.phlick"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.phlick"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = versionCodeSemantic
+        versionName = versionNameSemantic
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
