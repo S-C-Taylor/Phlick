@@ -336,6 +336,10 @@
   z-index: 10;
   padding: 1rem;
 }
+/* Tutorial overlay: semi-transparent so level is visible behind for context */
+.tutorial-overlay {
+  background: rgba(42, 24, 16, 0.55);
+}
 .overlay .card { max-width: 360px; width: 100%; }
 .overlay h2 { margin: 0 0 0.5rem; color: var(--on-surface); }
 .overlay p { margin: 0 0 1rem; color: var(--on-surface-variant); }

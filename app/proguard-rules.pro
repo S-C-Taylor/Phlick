@@ -9,6 +9,14 @@
 -keep class com.phlick.MainActivity { *; }
 -keep class com.phlick.ui.** { *; }
 -keep class com.phlick.game.** { *; }
+-keep class com.phlick.analytics.** { *; }
+
+# Firebase Crashlytics & Analytics (non-blocking; never on critical path)
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
 
 # Kotlin
 -keep class kotlin.Metadata { *; }

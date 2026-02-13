@@ -26,7 +26,10 @@ data class PrayerFlickState(
     // Progression mode: level state
     val levelState: LevelState = LevelState(),
     // Reactive monsters: map from monster index to their chosen attack style
-    val reactiveMonsterAttacks: Map<Int, Prayer> = emptyMap()
+    val reactiveMonsterAttacks: Map<Int, Prayer> = emptyMap(),
+    // 1-tick flick helper: time when current tick started (ms), and marks (0–1) for prayer toggles this tick
+    val lastTickTimeMs: Long = 0L,
+    val prayerMarksForTick: List<Float> = emptyList()
 ) {
     /** Delegates to shared [computeRequiredPrayers]. */
     val requiredPrayers: Set<Prayer>

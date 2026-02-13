@@ -165,9 +165,16 @@ class GameStateHolder(
         // OSRS 1-tick flicking: only "off → on" counts as activation (no drain). Switching Magic→Missiles
         // is not activation; true 1-tick flick is disable then re-enable the same prayer on the same tick.
         val activatedThisTick = newPrayer != null && currentState.selectedPrayer == null
+        // 1-tick flick helper: record position (0–1) within current tick when prayer toggled
+        val markPosition = if (currentState.lastTickTimeMs > 0L && currentState.isRunning) {
+            val elapsed = (System.currentTimeMillis() - currentState.lastTickTimeMs) / 600f
+            elapsed.coerceIn(0f, 1f)
+        } else null
+        val newMarks = if (markPosition != null) currentState.prayerMarksForTick + markPosition else currentState.prayerMarksForTick
         _state.value = currentState.copy(
             selectedPrayer = newPrayer,
-            prayerActivatedThisTick = currentState.prayerActivatedThisTick || activatedThisTick
+            prayerActivatedThisTick = currentState.prayerActivatedThisTick || activatedThisTick,
+            prayerMarksForTick = newMarks
         )
     }
 
@@ -190,6 +197,7 @@ class GameStateHolder(
     }
 
     private fun onTick(tickIndex: Int) {
+        val tickStartMs = System.currentTimeMillis()
         val currentState = _state.value
         val newTick = tickIndex
         // Prayer used for attack resolution: state when we begin this tick (includes any user click since last tick).
@@ -225,6 +233,7 @@ class GameStateHolder(
         val prayerAfterDrain = if (prayerDisabled) null else currentState.selectedPrayer
         
         // Update state: clear prayerActivatedThisTick; prayer at start of NEXT tick = current prayer now
+        // 1-tick flick helper: record tick start time and clear marks for new tick
         val prayerActiveForNextTick = prayerAfterDrain != null
         val stateWithPrayerDrain = currentState.copy(
             currentTick = newTick,
@@ -233,7 +242,9 @@ class GameStateHolder(
             selectedPrayer = prayerAfterDrain,
             wasPrayerActiveLastTick = prayerActiveForNextTick,
             prayerAtTickStart = prayerAfterDrain, // Next tick's "start" = current prayer (set at end of this tick)
-            prayerActivatedThisTick = false
+            prayerActivatedThisTick = false,
+            lastTickTimeMs = tickStartMs,
+            prayerMarksForTick = emptyList()
         )
 
         when (stateWithPrayerDrain.gameMode) {

@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createProgressionState } from "./core/state";
 import { ALL_LEVELS } from "./core/levels";
 import type { Level } from "./core/types";
 import { useTickEngine } from "./useTickEngine";
 import { getActiveMonsters } from "./core/getActiveMonsters";
 import { INITIAL_PRAYER_POINTS } from "./core/constants";
+import {
+  loadSettings,
+  saveSettings,
+  MAX_LATENCY_MS,
+  TUTORIAL_LEVELS,
+  loadTutorialSeenLevels,
+  saveTutorialSeen,
+  getTutorialForLevel,
+  type AppSettings,
+} from "./core/settings";
+import { logEvent } from "./core/analytics";
 import { MonsterView } from "./components/MonsterView";
 import "./App.css";
 
-type Screen = "home" | "about" | "progression-list" | "progression-play";
+type Screen = "home" | "about" | "settings" | "progression-list" | "progression-play";
 
 function AboutScreen({ onBack }: { onBack: () => void }) {
   return (
@@ -45,12 +56,89 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
+function SettingsScreen({ onBack }: { onBack: () => void }) {
+  const [settings, setSettingsState] = useState<AppSettings>(() => loadSettings());
+
+  const update = (patch: Partial<AppSettings>) => {
+    const next = { ...settings, ...patch };
+    setSettingsState(next);
+    saveSettings(next);
+  };
+
+  return (
+    <div className="app">
+      <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 1rem" }}>
+        Settings
+      </h1>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div>
+            <h2 className="screen-title" style={{ margin: "0 0 0.25rem", fontSize: "1rem" }}>Random latency</h2>
+            <p className="card-muted" style={{ margin: 0, fontSize: "0.85rem" }}>
+              Add random delay (0–{MAX_LATENCY_MS}ms) each tick to simulate network latency.
+            </p>
+          </div>
+          <label className="row" style={{ alignItems: "center", gap: "0.5rem" }}>
+            <input
+              type="checkbox"
+              checked={settings.randomLatencyEnabled}
+              onChange={(e) => update({ randomLatencyEnabled: e.target.checked })}
+            />
+            <span>On</span>
+          </label>
+        </div>
+        {settings.randomLatencyEnabled && (
+          <div style={{ marginTop: "0.75rem" }}>
+            <p className="card-muted" style={{ margin: "0 0 0.25rem", fontSize: "0.85rem" }}>
+              Max latency: {settings.randomLatencyMsMax} ms
+            </p>
+            <input
+              type="range"
+              min={0}
+              max={MAX_LATENCY_MS}
+              value={settings.randomLatencyMsMax}
+              onChange={(e) => update({ randomLatencyMsMax: Math.min(MAX_LATENCY_MS, parseInt(e.target.value, 10) || 0) })}
+              style={{ width: "100%" }}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div>
+            <h2 className="screen-title" style={{ margin: "0 0 0.25rem", fontSize: "1rem" }}>1-tick flick helper</h2>
+            <p className="card-muted" style={{ margin: 0, fontSize: "0.85rem" }}>
+              Show a visual tick bar during progression to help time flicks.
+            </p>
+          </div>
+          <label className="row" style={{ alignItems: "center", gap: "0.5rem" }}>
+            <input
+              type="checkbox"
+              checked={settings.showTickBar}
+              onChange={(e) => update({ showTickBar: e.target.checked })}
+            />
+            <span>On</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
+        Back
+      </button>
+    </div>
+  );
+}
+
 function Home({
   onProgression,
   onAbout,
+  onSettings,
 }: {
   onProgression: () => void;
   onAbout?: () => void;
+  onSettings?: () => void;
 }) {
   const [showSandboxComingSoon, setShowSandboxComingSoon] = useState(false);
 
@@ -84,6 +172,11 @@ function Home({
         </button>
       </div>
 
+      {onSettings && (
+        <button type="button" className="btn btn-outline" style={{ width: "100%", marginBottom: "0.5rem" }} onClick={onSettings}>
+          Settings
+        </button>
+      )}
       {onAbout && (
         <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onAbout}>
           About
@@ -217,6 +310,105 @@ function LevelFailedDialog({
   );
 }
 
+/** Guided tutorial overlay (first playthrough only). Level visible behind for context. */
+function TutorialOverlay({
+  title,
+  message,
+  onDismiss,
+}: {
+  title: string;
+  message: string;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="overlay tutorial-overlay">
+      <div className="card" style={{ maxWidth: 360 }}>
+        <h2 style={{ margin: "0 0 0.5rem" }}>{title}</h2>
+        <p className="card-muted" style={{ margin: "0 0 1rem", textAlign: "center" }}>
+          {message}
+        </p>
+        <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={onDismiss}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** One 600ms tick bar with flying sweep and x marks for prayer toggles (RuneLite 1-Tick Flick style). */
+function TickBar({
+  lastTickTimeMs,
+  marks,
+}: {
+  lastTickTimeMs: number;
+  marks: number[];
+}) {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (lastTickTimeMs <= 0) {
+      setProgress(0);
+      return;
+    }
+    const id = setInterval(() => {
+      const p = Math.max(0, Math.min(1, (Date.now() - lastTickTimeMs) / 600));
+      setProgress(p);
+    }, 50);
+    return () => clearInterval(id);
+  }, [lastTickTimeMs]);
+
+  return (
+    <div className="tick-bar" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+      <span className="card-muted" style={{ fontSize: "0.8rem" }}>Tick</span>
+      <div
+        style={{
+          position: "relative",
+          flex: 1,
+          height: 24,
+          background: "var(--surface-variant)",
+          borderRadius: 4,
+          overflow: "hidden",
+        }}
+      >
+        {/* Flying sweep */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 2,
+            bottom: 2,
+            width: `${progress * 100}%`,
+            background: "var(--primary)",
+            opacity: 0.5,
+            borderRadius: 2,
+          }}
+        />
+        {/* X marks at prayer toggle positions */}
+        {(marks ?? []).map((pos, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${Math.max(0, Math.min(100, pos * 100))}%`,
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 8,
+              height: 8,
+              color: "var(--on-surface)",
+              fontSize: 10,
+              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ×
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ProgressionPlayScreen({
   level,
   onLevelCompleteNext,
@@ -228,7 +420,14 @@ function ProgressionPlayScreen({
   onLevelFailedRetry: () => void;
   onBack: () => void;
 }) {
-  const engine = useTickEngine(createProgressionState(level, false));
+  const settings = useState(() => loadSettings())[0];
+  const [showTutorial, setShowTutorial] = useState(() =>
+    TUTORIAL_LEVELS.has(level.number) && !loadTutorialSeenLevels().has(level.number)
+  );
+  const engine = useTickEngine(createProgressionState(level, false), {
+    randomLatencyEnabled: settings.randomLatencyEnabled,
+    randomLatencyMsMax: settings.randomLatencyMsMax,
+  });
   const { state, setPrayer, start, levelComplete, levelFailed } = engine;
 
   const activeMonsters = getActiveMonsters(
@@ -246,6 +445,21 @@ function ProgressionPlayScreen({
   const prayerPoints = level.initialPrayerPoints ?? INITIAL_PRAYER_POINTS;
   const ls = state.levelState;
   const ticksRemaining = Math.max(0, level.ticksToSurvive - (Math.max(0, state.currentTick - 3) - ls.levelStartTick));
+
+  const completedLogged = useRef(false);
+  const failedLogged = useRef(false);
+  useEffect(() => {
+    if (levelComplete && !completedLogged.current) {
+      completedLogged.current = true;
+      logEvent("level_completed", { level_number: levelComplete.number });
+    }
+  }, [levelComplete]);
+  useEffect(() => {
+    if (levelFailed && !failedLogged.current) {
+      failedLogged.current = true;
+      logEvent("level_failed", { level_number: level.number });
+    }
+  }, [levelFailed, level.number]);
 
   if (levelComplete) {
     return (
@@ -274,13 +488,14 @@ function ProgressionPlayScreen({
   }
 
   const startLevel = () => {
+    logEvent("level_started", { level_number: level.number });
     engine.resetTickIndex();
     engine.setState(createProgressionState(level, true));
     start();
   };
 
   return (
-    <div className="app">
+    <div className="app" style={{ position: "relative" }}>
       <div className="card">
         <h2 style={{ margin: "0 0 4px", fontSize: "1.1rem" }}>Level {level.number}: {level.name}</h2>
         <p className="card-muted" style={{ margin: 0, fontSize: "0.85rem" }}>{level.description}</p>
@@ -325,6 +540,13 @@ function ProgressionPlayScreen({
           </div>
         </div>
       </div>
+
+      {settings.showTickBar && state.isRunning && (
+        <TickBar
+          lastTickTimeMs={state.lastTickTimeMs ?? 0}
+          marks={state.prayerMarksForTick ?? []}
+        />
+      )}
 
       <div className="monsters-row">
         {activeMonsters.map((m, i) => (
@@ -389,6 +611,22 @@ function ProgressionPlayScreen({
           ) : null}
         </div>
       )}
+
+      {/* Tutorial overlay on top of level so player has context (semi-transparent) */}
+      {showTutorial && (() => {
+        const c = getTutorialForLevel(level.number);
+        return c ? (
+          <TutorialOverlay
+            title={c.title}
+            message={c.message}
+            onDismiss={() => {
+              logEvent("tutorial_dismissed", { level_number: level.number });
+              saveTutorialSeen(level.number);
+              setShowTutorial(false);
+            }}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }
@@ -404,10 +642,14 @@ export default function App() {
         <Home
           onProgression={() => setScreen("progression-list")}
           onAbout={() => setScreen("about")}
+          onSettings={() => setScreen("settings")}
         />
       )}
       {screen === "about" && (
         <AboutScreen onBack={() => setScreen("home")} />
+      )}
+      {screen === "settings" && (
+        <SettingsScreen onBack={() => setScreen("home")} />
       )}
       {screen === "progression-list" && (
         <ProgressionListScreen

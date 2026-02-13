@@ -25,8 +25,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import com.phlick.settings.AppSettings
+import com.phlick.ui.getTutorialForLevel
+import com.phlick.ui.TUTORIAL_LEVELS
+import com.phlick.ui.TutorialOverlay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,8 +50,11 @@ fun ProgressionScreen(
     onBackToMenu: () -> Unit
 ) {
     val state by viewModel.gameHolder.state
+    val settings by viewModel.settings.collectAsState(initial = AppSettings())
+    val tutorialSeenLevels by viewModel.tutorialSeenLevels.collectAsState(initial = emptySet())
     val levelState = state.levelState
     val level = levelState.currentLevel
+    var tutorialDismissedByUser by remember(level?.number) { mutableStateOf(false) }
 
     if (level == null) {
         LevelSelectionScreen(
@@ -214,6 +225,13 @@ fun ProgressionScreen(
                     )
                 }
             }
+        }
+
+        if (settings.showTickBar && state.isRunning) {
+            TickBar(
+                lastTickTimeMs = state.lastTickTimeMs,
+                marks = state.prayerMarksForTick
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -414,6 +432,24 @@ fun ProgressionScreen(
             )
         }
     }
+
+    // Guided tutorial on first playthrough (Level 1, 3, 9)
+    if (level != null &&
+        level.number in TUTORIAL_LEVELS &&
+        level.number !in tutorialSeenLevels &&
+        !tutorialDismissedByUser
+    ) {
+        getTutorialForLevel(level.number)?.let { (title, message) ->
+            TutorialOverlay(
+                title = title,
+                message = message,
+                onDismiss = {
+                    tutorialDismissedByUser = true
+                    viewModel.markTutorialSeen(level.number)
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -512,7 +548,7 @@ fun LevelCompleteDialog(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primary
         )
     ) {
         Column(
@@ -523,20 +559,20 @@ fun LevelCompleteDialog(
             Text(
                 text = "Level Complete!",
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Text(
                 text = "You survived ${level.name}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimary
             )
 
-            // Statistics panel – single column of label/value rows, aligned
+            // Statistics panel – single column of label/value rows (gold card, light tint panel like web)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
                 )
             ) {
                 Column(
@@ -546,7 +582,7 @@ fun LevelCompleteDialog(
                     Text(
                         text = "Statistics",
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -555,12 +591,12 @@ fun LevelCompleteDialog(
                         Text(
                             text = "Attacks blocked",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                         Text(
                             text = "$attacksBlocked",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Row(
@@ -570,12 +606,12 @@ fun LevelCompleteDialog(
                         Text(
                             text = "Attacks missed",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                         Text(
                             text = "$attacksMissed",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Row(
@@ -585,19 +621,19 @@ fun LevelCompleteDialog(
                         Text(
                             text = "Prayer points used",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                         Text(
                             text = "$prayerPointsUsed / $initialPrayerPoints",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     if (prayerPointsUsed == 0) {
                         Text(
                             text = "Perfect flicking! ✨",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -609,13 +645,20 @@ fun LevelCompleteDialog(
             ) {
                 OutlinedButton(
                     onClick = onBackToMenu,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text("Menu")
                 }
                 Button(
                     onClick = onNextLevel,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Text("Next Level")
                 }

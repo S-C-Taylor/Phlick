@@ -9,13 +9,16 @@ import androidx.compose.runtime.setValue
 enum class Screen {
     Landing,
     Progression,
-    About
+    About,
+    Settings
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(settingsRepository: com.phlick.settings.SettingsRepository) {
     var currentScreen by remember { mutableStateOf(Screen.Landing) }
-    val viewModel: PrayerFlickViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val viewModel: PrayerFlickViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = PhlickViewModelFactory(settingsRepository)
+    )
 
     when (currentScreen) {
         Screen.Landing -> LandingScreen(
@@ -23,7 +26,8 @@ fun AppNavigation() {
                 viewModel.gameHolder.reset() // Reset state before switching
                 currentScreen = Screen.Progression
             },
-            onAbout = { currentScreen = Screen.About }
+            onAbout = { currentScreen = Screen.About },
+            onSettings = { currentScreen = Screen.Settings }
         )
         Screen.Progression -> ProgressionScreen(
             viewModel = viewModel,
@@ -33,6 +37,10 @@ fun AppNavigation() {
             }
         )
         Screen.About -> AboutScreen(
+            onBack = { currentScreen = Screen.Landing }
+        )
+        Screen.Settings -> SettingsScreen(
+            settingsRepository = settingsRepository,
             onBack = { currentScreen = Screen.Landing }
         )
     }

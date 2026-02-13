@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 fun LandingScreen(
     onStartProgression: () -> Unit,
     onAbout: () -> Unit = {},
+    onSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showComingSoonDialog by remember { mutableStateOf(false) }
@@ -145,6 +146,13 @@ fun LandingScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            OutlinedButton(
+                onClick = onSettings,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text("Settings")
+            }
             OutlinedButton(
                 onClick = onAbout,
                 modifier = Modifier.fillMaxWidth(),

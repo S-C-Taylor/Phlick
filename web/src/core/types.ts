@@ -61,4 +61,7 @@ export interface GameState {
   rangedMonsterAttackOffset: number | null;
   levelState: LevelState;
   reactiveMonsterAttacks: Record<number, Prayer>;
+  /** 1-tick flick helper: when current tick started (ms), marks 0–1 for prayer toggles this tick */
+  lastTickTimeMs?: number;
+  prayerMarksForTick?: number[];
 }

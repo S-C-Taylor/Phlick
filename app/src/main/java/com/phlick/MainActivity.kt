@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import com.phlick.settings.SettingsRepository
 import com.phlick.ui.AppNavigation
 import com.phlick.ui.Theme
 
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
         }
         window.statusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
+        val settingsRepository = SettingsRepository(applicationContext)
         setContent {
             Theme {
                 Surface(
@@ -35,7 +37,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(WindowInsets.safeDrawing.asPaddingValues())
                 ) {
-                    AppNavigation()
+                    AppNavigation(settingsRepository = settingsRepository)
                 }
             }
         }
