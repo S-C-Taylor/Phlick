@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createProgressionState } from "./core/state";
 import { ALL_LEVELS } from "./core/levels";
 import type { Level } from "./core/types";
@@ -631,25 +631,78 @@ function ProgressionPlayScreen({
   );
 }
 
+type HistoryState = { screen: Screen; levelNumber?: number } | null;
+
+function pushState(screen: Screen, levelNumber?: number) {
+  window.history.pushState({ screen, levelNumber }, "", window.location.href);
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [progressionKey, setProgressionKey] = useState(0);
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const pendingBackRef = useRef<HistoryState>(null);
+
+  const navigateTo = useCallback((s: Screen) => {
+    setScreen(s);
+    if (s === "home" || s === "progression-list") setSelectedLevel(null);
+    pushState(s);
+  }, []);
+
+  useEffect(() => {
+    if (!window.history.state?.screen) {
+      window.history.replaceState({ screen: "home" }, "", window.location.href);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      const state = e.state as HistoryState;
+      const target = state?.screen ?? "home";
+      if (screen === "progression-play" && (target === "progression-list" || target === "home")) {
+        setShowBackConfirm(true);
+        pendingBackRef.current = state;
+      } else {
+        setScreen(target);
+        if (target === "progression-list" || target === "home") setSelectedLevel(null);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [screen]);
+
+  const confirmBack = useCallback(() => {
+    const state = pendingBackRef.current;
+    setShowBackConfirm(false);
+    pendingBackRef.current = null;
+    if (state?.screen) {
+      setScreen(state.screen);
+      if (state.screen === "progression-list" || state.screen === "home") setSelectedLevel(null);
+    }
+  }, []);
+
+  const cancelBack = useCallback(() => {
+    setShowBackConfirm(false);
+    pendingBackRef.current = null;
+    if (screen === "progression-play" && selectedLevel)
+      pushState("progression-play", selectedLevel.number);
+  }, [screen, selectedLevel]);
 
   return (
     <>
       {screen === "home" && (
         <Home
-          onProgression={() => setScreen("progression-list")}
-          onAbout={() => setScreen("about")}
-          onSettings={() => setScreen("settings")}
+          onProgression={() => navigateTo("progression-list")}
+          onAbout={() => navigateTo("about")}
+          onSettings={() => navigateTo("settings")}
         />
       )}
       {screen === "about" && (
-        <AboutScreen onBack={() => setScreen("home")} />
+        <AboutScreen onBack={() => navigateTo("home")} />
       )}
       {screen === "settings" && (
-        <SettingsScreen onBack={() => setScreen("home")} />
+        <SettingsScreen onBack={() => navigateTo("home")} />
       )}
       {screen === "progression-list" && (
         <ProgressionListScreen
@@ -657,33 +710,57 @@ export default function App() {
             setSelectedLevel(l);
             setProgressionKey((k) => k + 1);
             setScreen("progression-play");
+            pushState("progression-play", l.number);
           }}
-          onBack={() => setScreen("home")}
+          onBack={() => navigateTo("home")}
         />
       )}
       {screen === "progression-play" && selectedLevel && (
-        <ProgressionPlayScreen
-          key={`${selectedLevel.number}-${progressionKey}`}
-          level={selectedLevel}
-          onLevelCompleteNext={(next) => {
-            if (next) {
-              setSelectedLevel(next);
+        <>
+          <ProgressionPlayScreen
+            key={`${selectedLevel.number}-${progressionKey}`}
+            level={selectedLevel}
+            onLevelCompleteNext={(next) => {
+              if (next) {
+                setSelectedLevel(next);
+                setProgressionKey((k) => k + 1);
+                setScreen("progression-play");
+                pushState("progression-play", next.number);
+              } else {
+                setSelectedLevel(null);
+                setScreen("progression-list");
+                pushState("progression-list");
+              }
+            }}
+            onLevelFailedRetry={() => {
               setProgressionKey((k) => k + 1);
               setScreen("progression-play");
-            } else {
+            }}
+            onBack={() => {
               setSelectedLevel(null);
               setScreen("progression-list");
-            }
-          }}
-          onLevelFailedRetry={() => {
-            setProgressionKey((k) => k + 1);
-            setScreen("progression-play");
-          }}
-          onBack={() => {
-            setSelectedLevel(null);
-            setScreen("progression-list");
-          }}
-        />
+              pushState("progression-list");
+            }}
+          />
+          {showBackConfirm && (
+            <div className="overlay" style={{ alignItems: "center", justifyContent: "center" }}>
+              <div className="card" style={{ maxWidth: 320 }}>
+                <h2 style={{ margin: "0 0 0.5rem" }}>Return to level select?</h2>
+                <p className="card-muted" style={{ margin: "0 0 1rem" }}>
+                  Your progress in this level will be lost.
+                </p>
+                <div className="dialog-buttons">
+                  <button type="button" className="btn btn-outline" onClick={cancelBack}>
+                    Cancel
+                  </button>
+                  <button type="button" className="btn btn-primary" onClick={confirmBack}>
+                    Level select
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </>
   );

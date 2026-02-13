@@ -136,6 +136,17 @@ class GameStateHolder(
         _state.value = _state.value.copy(isRunning = false)
     }
 
+    /** Quit current level and return to level select (stays in Progression). */
+    fun quitCurrentLevel() {
+        tickEngine.stop()
+        tickEngine.onTick = null
+        _state.value = PrayerFlickState(
+            gameMode = GameMode.Progression,
+            isRunning = false,
+            levelState = LevelState() // Empty level state
+        )
+    }
+
     fun quitProgression() {
         tickEngine.stop()
         tickEngine.onTick = null

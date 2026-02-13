@@ -24,6 +24,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,11 +58,17 @@ fun ProgressionScreen(
     var tutorialDismissedByUser by remember(level?.number) { mutableStateOf(false) }
 
     if (level == null) {
+        BackHandler { onBackToMenu() }
         LevelSelectionScreen(
             onSelectLevel = { level -> viewModel.selectLevel(level) },
             onBack = onBackToMenu
         )
         return
+    }
+
+    var showBackConfirm by remember { mutableStateOf(false) }
+    BackHandler {
+        showBackConfirm = true
     }
 
     Box(
@@ -448,6 +455,65 @@ fun ProgressionScreen(
                     viewModel.markTutorialSeen(level.number)
                 }
             )
+        }
+    }
+
+    // Back button: confirm return to level select when in level (playing or pre-start)
+    if (showBackConfirm) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Return to level select?",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Your progress in this level will be lost.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showBackConfirm = false },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                showBackConfirm = false
+                                viewModel.gameHolder.quitCurrentLevel()
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Text("Level select")
+                        }
+                    }
+                }
+            }
         }
     }
 }
