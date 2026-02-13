@@ -43,6 +43,27 @@
   }
 }
 
+/* Progression play: fit viewport on mobile so Quit/Start stay visible when TickBar appears */
+@media (max-width: 480px) {
+  .app--play {
+    height: 100dvh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+  .app--play-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .app--play-footer {
+    flex-shrink: 0;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  }
+}
+
 .screen-title {
   font-size: 1.25rem;
   font-weight: 600;

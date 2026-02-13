@@ -495,120 +495,124 @@ function ProgressionPlayScreen({
   };
 
   return (
-    <div className="app" style={{ position: "relative" }}>
-      <div className="card">
-        <h2 style={{ margin: "0 0 4px", fontSize: "1.1rem" }}>Level {level.number}: {level.name}</h2>
-        <p className="card-muted" style={{ margin: 0, fontSize: "0.85rem" }}>{level.description}</p>
-      </div>
-
-      {/* Progress bar – "Progress" + "X ticks remaining" (match Android) */}
-      <div className="card">
-        <div className="row">
-          <span className="card-muted">Progress</span>
-          <span style={{ color: "var(--primary)" }}>{ticksRemaining} ticks remaining</span>
+    <div className="app app--play" style={{ position: "relative" }}>
+      <div className="app--play-scroll">
+        <div className="card">
+          <h2 style={{ margin: "0 0 4px", fontSize: "1.1rem" }}>Level {level.number}: {level.name}</h2>
+          <p className="card-muted" style={{ margin: 0, fontSize: "0.85rem" }}>{level.description}</p>
         </div>
-        <div className="progress-bar tall">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${ls.health}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Lives + Prayer in one row (match Android) */}
-      <div className="row" style={{ gap: 12, marginBottom: "0.75rem" }}>
-        <div className="card" style={{ flex: 1, marginBottom: 0 }}>
-          <div className="row" style={{ marginBottom: 4 }}>
-            <span className="card-muted">Lives:</span>
-            <div className="lives-row">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`life-dot ${i < ls.lives ? "filled" : ""}`} />
-              ))}
+        {/* Progress bar – "Progress" + "X ticks remaining" (match Android) */}
+        <div className="card">
+          <div className="row">
+            <span className="card-muted">Progress</span>
+            <span style={{ color: "var(--primary)" }}>{ticksRemaining} ticks remaining</span>
+          </div>
+          <div className="progress-bar tall">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${ls.health}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Lives + Prayer in one row (match Android) */}
+        <div className="row" style={{ gap: 12, marginBottom: "0.75rem" }}>
+          <div className="card" style={{ flex: 1, marginBottom: 0 }}>
+            <div className="row" style={{ marginBottom: 4 }}>
+              <span className="card-muted">Lives:</span>
+              <div className="lives-row">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={`life-dot ${i < ls.lives ? "filled" : ""}`} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="card" style={{ flex: 1, marginBottom: 0 }}>
+            <div className="row">
+              <span className="card-muted">Prayer:</span>
+              <span style={{ color: "var(--primary)" }}>{state.prayerPoints}</span>
+            </div>
+            <div className="progress-bar">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${(state.prayerPoints / prayerPoints) * 100}%` }}
+              />
             </div>
           </div>
         </div>
-        <div className="card" style={{ flex: 1, marginBottom: 0 }}>
-          <div className="row">
-            <span className="card-muted">Prayer:</span>
-            <span style={{ color: "var(--primary)" }}>{state.prayerPoints}</span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${(state.prayerPoints / prayerPoints) * 100}%` }}
-            />
-          </div>
+
+        {settings.showTickBar && state.isRunning && (
+          <TickBar
+            lastTickTimeMs={state.lastTickTimeMs ?? 0}
+            marks={state.prayerMarksForTick ?? []}
+          />
+        )}
+
+        <div className="monsters-row">
+          {activeMonsters.map((m, i) => (
+            <div key={i} className="monster-column">
+              <MonsterView
+                attackStyle={m.attackStyle}
+                isAttacking={m.isAttacking}
+                tickInCycle={m.tickInCycle}
+                cycleLength={m.cycleLength}
+              />
+              <span className="monster-label">
+                {m.attackStyle === "Magic" ? "Mage" : m.attackStyle === "Missiles" ? "Range" : "Melee"}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="player-prayer-wrap">
+          <div
+            className={`player-prayer-circle ${state.selectedPrayer ? state.selectedPrayer.toLowerCase() : ""}`}
+          />
+          <span className="player-prayer-label">Active Prayer</span>
+        </div>
+
+        <div className="prayer-buttons" style={{ display: "flex", gap: "12px", width: "100%" }}>
+          <button
+            type="button"
+            className={`prayer-btn magic ${state.selectedPrayer === "Magic" ? "active" : ""}`}
+            onClick={() => setPrayer("Magic")}
+            disabled={!state.isRunning || state.prayerPoints <= 0}
+          >
+            {state.selectedPrayer === "Magic" ? "Magic ✓" : "Protect Magic"}
+          </button>
+          <button
+            type="button"
+            className={`prayer-btn missiles ${state.selectedPrayer === "Missiles" ? "active" : ""}`}
+            onClick={() => setPrayer("Missiles")}
+            disabled={!state.isRunning || state.prayerPoints <= 0}
+          >
+            {state.selectedPrayer === "Missiles" ? "Missiles ✓" : "Protect Range"}
+          </button>
+        </div>
+
+        <div className="feedback-box">
+          {state.lastResult === "Correct" && (
+            <div className="feedback-card correct">✓ Correct!</div>
+          )}
+          {state.lastResult === "Wrong" && (
+            <div className="feedback-card wrong">✗ Wrong! -1 Life</div>
+          )}
         </div>
       </div>
 
-      {settings.showTickBar && state.isRunning && (
-        <TickBar
-          lastTickTimeMs={state.lastTickTimeMs ?? 0}
-          marks={state.prayerMarksForTick ?? []}
-        />
-      )}
-
-      <div className="monsters-row">
-        {activeMonsters.map((m, i) => (
-          <div key={i} className="monster-column">
-            <MonsterView
-              attackStyle={m.attackStyle}
-              isAttacking={m.isAttacking}
-              tickInCycle={m.tickInCycle}
-              cycleLength={m.cycleLength}
-            />
-            <span className="monster-label">
-              {m.attackStyle === "Magic" ? "Mage" : m.attackStyle === "Missiles" ? "Range" : "Melee"}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="player-prayer-wrap">
-        <div
-          className={`player-prayer-circle ${state.selectedPrayer ? state.selectedPrayer.toLowerCase() : ""}`}
-        />
-        <span className="player-prayer-label">Active Prayer</span>
-      </div>
-
-      <div className="prayer-buttons" style={{ display: "flex", gap: "12px", width: "100%" }}>
-        <button
-          type="button"
-          className={`prayer-btn magic ${state.selectedPrayer === "Magic" ? "active" : ""}`}
-          onClick={() => setPrayer("Magic")}
-          disabled={!state.isRunning || state.prayerPoints <= 0}
-        >
-          {state.selectedPrayer === "Magic" ? "Magic ✓" : "Protect Magic"}
-        </button>
-        <button
-          type="button"
-          className={`prayer-btn missiles ${state.selectedPrayer === "Missiles" ? "active" : ""}`}
-          onClick={() => setPrayer("Missiles")}
-          disabled={!state.isRunning || state.prayerPoints <= 0}
-        >
-          {state.selectedPrayer === "Missiles" ? "Missiles ✓" : "Protect Range"}
-        </button>
-      </div>
-
-      <div className="feedback-box">
-        {state.lastResult === "Correct" && (
-          <div className="feedback-card correct">✓ Correct!</div>
-        )}
-        {state.lastResult === "Wrong" && (
-          <div className="feedback-card wrong">✗ Wrong! -1 Life</div>
-        )}
-      </div>
-
       {!ls.isLevelComplete && !ls.isLevelFailed && (
-        <div className="row-buttons">
-          <button type="button" className="btn btn-outline" onClick={onBack}>
-            Quit
-          </button>
-          {!state.isRunning ? (
-            <button type="button" className="btn btn-primary" onClick={startLevel}>
-              Start
+        <div className="app--play-footer">
+          <div className="row-buttons">
+            <button type="button" className="btn btn-outline" onClick={onBack}>
+              Quit
             </button>
-          ) : null}
+            {!state.isRunning ? (
+              <button type="button" className="btn btn-primary" onClick={startLevel}>
+                Start
+              </button>
+            ) : null}
+          </div>
         </div>
       )}
 
