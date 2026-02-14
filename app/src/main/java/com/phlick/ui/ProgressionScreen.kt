@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.phlick.analytics.PhlickAnalytics
 import com.phlick.game.FlickResult
 import com.phlick.game.Prayer
 
@@ -503,6 +504,16 @@ fun ProgressionScreen(
                         Button(
                             onClick = {
                                 showBackConfirm = false
+                                level?.let { l ->
+                                    PhlickAnalytics.logEvent(
+                                        "level_quit",
+                                        mapOf(
+                                            "level_number" to l.number,
+                                            "lives_left" to levelState.lives,
+                                            "ticks_remaining" to levelState.ticksRemaining
+                                        )
+                                    )
+                                }
                                 viewModel.gameHolder.quitCurrentLevel()
                             },
                             modifier = Modifier.weight(1f),

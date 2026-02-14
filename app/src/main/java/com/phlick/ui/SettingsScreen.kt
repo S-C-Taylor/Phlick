@@ -26,6 +26,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.phlick.analytics.PhlickAnalytics
 import com.phlick.settings.AppSettings
 import com.phlick.settings.SettingsRepository
 import kotlinx.coroutines.launch
@@ -47,6 +49,15 @@ fun SettingsScreen(
     BackHandler { onBack() }
     val settings by settingsRepository.settings.collectAsState(initial = AppSettings())
     val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        PhlickAnalytics.logEvent(
+            "settings_viewed",
+            mapOf(
+                "show_tick_bar" to settings.showTickBar,
+                "random_latency_enabled" to settings.randomLatencyEnabled
+            )
+        )
+    }
 
     Column(
         modifier = modifier

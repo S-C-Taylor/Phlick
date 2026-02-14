@@ -5,7 +5,7 @@ Crash reporting and analytics are **optional**, **non-blocking**, and **offline-
 ## Android (Firebase)
 
 - **Crashlytics**: Uncaught crashes and non-fatal exceptions (via `PhlickAnalytics.recordNonFatal`).
-- **Analytics**: Events (`level_started`, `level_completed`, `level_failed`, `tutorial_dismissed`) are logged and sent when the device is online. Firebase batches and uploads in the background.
+- **Analytics**: Events are logged and sent when the device is online. Firebase batches and uploads in the background. See **Events** below.
 
 **Setup (optional):**
 
@@ -26,7 +26,18 @@ Crash reporting and analytics are **optional**, **non-blocking**, and **offline-
 - **Sentry:** In `.env` or your host’s env, set `VITE_SENTRY_DSN=https://...@sentry.io/...`. Rebuild. Leave unset to disable.
 - **Analytics:** Set `VITE_ANALYTICS_ENDPOINT=https://your-backend.com/events` (or similar). Your endpoint should accept POST with `Content-Type: application/json` and body `{ events: Array<{ name, props, ts }> }`. Leave unset to disable sending (events still queue locally).
 
-**Events:** `level_started`, `level_completed`, `level_failed`, `tutorial_dismissed`, each with `level_number` and `_v` (app version).
+**Events:**
+
+| Event | When | Params (Android & Web) |
+|-------|------|------------------------|
+| `level_started` | User taps Start on a level | `level_number` |
+| `level_completed` | User survives the level | `level_number`, `duration_seconds`, `show_tick_bar`, `random_latency_enabled` |
+| `level_failed` | User runs out of lives | `level_number`, `duration_seconds`, `show_tick_bar`, `random_latency_enabled` |
+| `level_quit` | User quits mid-level (back → Level select) | `level_number`, `lives_left`, `ticks_remaining` |
+| `tutorial_dismissed` | User taps Got it on a tutorial | `level_number` |
+| `settings_viewed` | User opens Settings screen | `show_tick_bar`, `random_latency_enabled` |
+
+Web events also include `_v` (app version) and `ts` (client timestamp).
 
 ## Summary
 

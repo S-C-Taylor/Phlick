@@ -282,6 +282,13 @@ function FeedbackScreen({ onBack }: { onBack: () => void }) {
 function SettingsScreen({ onBack }: { onBack: () => void }) {
   const [settings, setSettingsState] = useState<AppSettings>(() => loadSettings());
 
+  useEffect(() => {
+    logEvent("settings_viewed", {
+      show_tick_bar: settings.showTickBar,
+      random_latency_enabled: settings.randomLatencyEnabled,
+    });
+  }, []);
+
   const update = (patch: Partial<AppSettings>) => {
     const next = { ...settings, ...patch };
     setSettingsState(next);
@@ -669,20 +676,33 @@ function ProgressionPlayScreen({
   const ls = state.levelState;
   const ticksRemaining = Math.max(0, level.ticksToSurvive - (Math.max(0, state.currentTick - 3) - ls.levelStartTick));
 
+  const levelStartTimeMsRef = useRef(0);
   const completedLogged = useRef(false);
   const failedLogged = useRef(false);
   useEffect(() => {
     if (levelComplete && !completedLogged.current) {
       completedLogged.current = true;
-      logEvent("level_completed", { level_number: levelComplete.number });
+      const durationSeconds = Math.max(0, Math.round((Date.now() - levelStartTimeMsRef.current) / 1000));
+      logEvent("level_completed", {
+        level_number: levelComplete.number,
+        duration_seconds: durationSeconds,
+        show_tick_bar: settings.showTickBar,
+        random_latency_enabled: settings.randomLatencyEnabled,
+      });
     }
-  }, [levelComplete]);
+  }, [levelComplete, settings.showTickBar, settings.randomLatencyEnabled]);
   useEffect(() => {
     if (levelFailed && !failedLogged.current) {
       failedLogged.current = true;
-      logEvent("level_failed", { level_number: level.number });
+      const durationSeconds = Math.max(0, Math.round((Date.now() - levelStartTimeMsRef.current) / 1000));
+      logEvent("level_failed", {
+        level_number: level.number,
+        duration_seconds: durationSeconds,
+        show_tick_bar: settings.showTickBar,
+        random_latency_enabled: settings.randomLatencyEnabled,
+      });
     }
-  }, [levelFailed, level.number]);
+  }, [levelFailed, level.number, settings.showTickBar, settings.randomLatencyEnabled]);
 
   if (levelComplete) {
     return (
@@ -711,6 +731,7 @@ function ProgressionPlayScreen({
   }
 
   const startLevel = () => {
+    levelStartTimeMsRef.current = Date.now();
     logEvent("level_started", { level_number: level.number });
     engine.resetTickIndex();
     engine.setState(createProgressionState(level, true));
@@ -827,7 +848,18 @@ function ProgressionPlayScreen({
       {!ls.isLevelComplete && !ls.isLevelFailed && (
         <div className="app--play-footer">
           <div className="row-buttons">
-            <button type="button" className="btn btn-outline" onClick={onBack}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => {
+                logEvent("level_quit", {
+                  level_number: level.number,
+                  lives_left: ls.lives,
+                  ticks_remaining: ticksRemaining,
+                });
+                onBack();
+              }}
+            >
               Quit
             </button>
             {!state.isRunning ? (

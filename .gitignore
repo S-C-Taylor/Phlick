@@ -8,6 +8,7 @@ local.properties
 *.apk
 *.aab
 *.dex
+app/google-services.json
 
 # Kotlin
 *.class

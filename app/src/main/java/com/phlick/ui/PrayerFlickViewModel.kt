@@ -27,15 +27,37 @@ class PrayerFlickViewModel(
     val tutorialSeenLevels: StateFlow<Set<Int>> = settingsRepository.tutorialSeenLevels
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptySet())
 
+    private var levelStartTimeMs: Long = 0L
+
     init {
         viewModelScope.launch {
             gameHolder.levelComplete.collect { level ->
-                PhlickAnalytics.logEvent("level_completed", mapOf("level_number" to level.number))
+                val durationSeconds = ((System.currentTimeMillis() - levelStartTimeMs) / 1000).toInt().coerceAtLeast(0)
+                val s = settings.value
+                PhlickAnalytics.logEvent(
+                    "level_completed",
+                    mapOf(
+                        "level_number" to level.number,
+                        "duration_seconds" to durationSeconds,
+                        "show_tick_bar" to s.showTickBar,
+                        "random_latency_enabled" to s.randomLatencyEnabled
+                    )
+                )
             }
         }
         viewModelScope.launch {
             gameHolder.levelFailed.collect { level ->
-                PhlickAnalytics.logEvent("level_failed", mapOf("level_number" to level.number))
+                val durationSeconds = ((System.currentTimeMillis() - levelStartTimeMs) / 1000).toInt().coerceAtLeast(0)
+                val s = settings.value
+                PhlickAnalytics.logEvent(
+                    "level_failed",
+                    mapOf(
+                        "level_number" to level.number,
+                        "duration_seconds" to durationSeconds,
+                        "show_tick_bar" to s.showTickBar,
+                        "random_latency_enabled" to s.randomLatencyEnabled
+                    )
+                )
             }
         }
     }
@@ -67,6 +89,7 @@ class PrayerFlickViewModel(
         gameHolder.startLevel(level)
     }
     fun startSelectedLevel() {
+        levelStartTimeMs = System.currentTimeMillis()
         applyLatencyFromSettings()
         val level = gameHolder.state.value.levelState.currentLevel
         gameHolder.startSelectedLevel()
