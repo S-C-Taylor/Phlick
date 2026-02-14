@@ -19,9 +19,9 @@ import { logEvent } from "./core/analytics";
 import { MonsterView } from "./components/MonsterView";
 import "./App.css";
 
-type Screen = "home" | "about" | "settings" | "progression-list" | "progression-play";
+type Screen = "home" | "about" | "settings" | "privacy" | "progression-list" | "progression-play";
 
-function AboutScreen({ onBack }: { onBack: () => void }) {
+function AboutScreen({ onBack, onPrivacy }: { onBack: () => void; onPrivacy?: () => void }) {
   return (
     <div className="app">
       <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 0.25rem" }}>
@@ -47,6 +47,99 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
           <span className="card-muted">Name</span>
           <span>SimilTea</span>
         </div>
+      </div>
+
+      {onPrivacy && (
+        <a
+          href="/privacy"
+          className="btn btn-outline"
+          style={{ width: "100%", marginBottom: "0.5rem", display: "block", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}
+          onClick={(e) => {
+            e.preventDefault();
+            onPrivacy();
+          }}
+        >
+          Privacy Policy
+        </a>
+      )}
+      <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
+        Back
+      </button>
+    </div>
+  );
+}
+
+function PrivacyScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="app">
+      <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 0.25rem" }}>
+        Privacy Policy
+      </h1>
+      <p style={{ color: "var(--on-surface-variant)", margin: "0 0 1rem", fontSize: "0.875rem" }}>
+        Last updated: February 2025
+      </p>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>1. Introduction</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          Phlick (“we”, “our”, or “the app”) is a prayer flick trainer (Android app and web app) developed by SimilTea. This Privacy Policy describes how we handle information when you use the Phlick Android application and the Phlick website (together, “the service”). We do not collect personal information that identifies you by name or contact details. The service is designed to work offline; any optional data collection is non-blocking and does not affect gameplay.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>2. Data we may collect</h2>
+        <p className="card-muted" style={{ margin: "0 0 0.5rem", fontSize: "0.9rem" }}>
+          <strong>Android app</strong>
+        </p>
+        <ul className="card-muted" style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.9rem" }}>
+          <li><strong>Crash and diagnostics (optional):</strong> If you have the version of the app that includes Firebase, we may receive crash reports and non-fatal error logs (e.g. stack traces, device model, OS version) via Google Firebase Crashlytics. This helps us fix bugs. No account or personal identity is required.</li>
+          <li><strong>Usage events (optional):</strong> If Firebase is enabled, we may receive anonymized events such as “level started”, “level completed”, “level failed”, and “tutorial dismissed” (with level number and app version) via Google Firebase Analytics. This helps us understand how the app is used. Events are sent only when the device is online and are not linked to your identity.</li>
+        </ul>
+        <p className="card-muted" style={{ margin: "0.75rem 0 0.5rem", fontSize: "0.9rem" }}>
+          <strong>Web app</strong>
+        </p>
+        <ul className="card-muted" style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.9rem" }}>
+          <li><strong>Crash reporting (optional):</strong> If the site operator configures Sentry, error reports (e.g. stack traces, browser info) may be sent to Sentry. This is optional and controlled by the deployment.</li>
+          <li><strong>Analytics (optional):</strong> If an analytics endpoint is configured, anonymized events (e.g. level started/completed/failed, tutorial dismissed) may be sent when you are online. Events are stored locally until sent and are not tied to your identity.</li>
+        </ul>
+        <p className="card-muted" style={{ margin: "0.75rem 0 0", fontSize: "0.9rem" }}>
+          <strong>Stored on your device only:</strong> Settings (e.g. latency, tick bar preference), tutorial “seen” state, and (on web) queued analytics events may be stored locally on your device. We do not upload this to our servers except as part of optional crash/analytics described above.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>3. How we use data</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          We use crash and diagnostics data to improve stability and fix errors. We use usage/analytics data only in aggregate to understand feature usage and improve the app. We do not sell your data or use it for advertising. We do not create user profiles that identify you.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>4. Third parties</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          The Android app may use Google Firebase (Crashlytics and Analytics) when that integration is included in the build. Their privacy practices apply to data processed by Google: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--primary)" }}>Google Privacy Policy</a>. The web app may use Sentry and/or a custom analytics endpoint if configured by the site operator. We do not control those third-party services; their terms and privacy policies apply.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>5. Data retention and security</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          Crash and analytics data are retained according to the policies of the providers (e.g. Firebase, Sentry). Local data on your device (settings, progress) remains on your device until you clear app data or uninstall. We do not transmit or store passwords or other sensitive personal data; the app does not require an account.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>6. Children and region</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          The service is not directed at children under 13. We do not knowingly collect personal information from children. The app may be used globally; by using it, you consent to the processing described in this policy.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <h2 className="screen-title" style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>7. Changes and contact</h2>
+        <p className="card-muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+          We may update this Privacy Policy from time to time. The “Last updated” date at the top will be revised when we do. Continued use of the app after changes constitutes acceptance. For questions about this policy or the app, you can contact the developer (SimilTea) via the app store listing or the Phlick website.
+        </p>
       </div>
 
       <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
@@ -637,8 +730,29 @@ function ProgressionPlayScreen({
 
 type HistoryState = { screen: Screen; levelNumber?: number } | null;
 
+function pathForScreen(screen: Screen, levelNumber?: number): string {
+  if (screen === "privacy") return "/privacy";
+  if (screen === "about") return "/about";
+  if (screen === "settings") return "/settings";
+  if (screen === "progression-play" && levelNumber != null) return "/play/" + levelNumber;
+  if (screen === "progression-list") return "/levels";
+  return "/";
+}
+
+function parsePath(pathname: string): { screen: Screen; levelNumber?: number } {
+  const p = pathname.replace(/\/$/, "") || "/";
+  if (p === "/privacy") return { screen: "privacy" };
+  if (p === "/about") return { screen: "about" };
+  if (p === "/settings") return { screen: "settings" };
+  const playMatch = p.match(/^\/play\/(\d+)$/);
+  if (playMatch) return { screen: "progression-play", levelNumber: parseInt(playMatch[1], 10) };
+  if (p === "/levels") return { screen: "progression-list" };
+  return { screen: "home" };
+}
+
 function pushState(screen: Screen, levelNumber?: number) {
-  window.history.pushState({ screen, levelNumber }, "", window.location.href);
+  const path = pathForScreen(screen, levelNumber);
+  window.history.pushState({ screen, levelNumber }, "", path);
 }
 
 export default function App() {
@@ -655,9 +769,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!window.history.state?.screen) {
-      window.history.replaceState({ screen: "home" }, "", window.location.href);
+    const pathname = window.location.pathname;
+    const state = window.history.state as HistoryState;
+    if (state?.screen != null) {
+      const path = pathForScreen(state.screen, state.levelNumber);
+      if (pathname !== path) window.history.replaceState(state, "", path);
+      return;
     }
+    const { screen: initialScreen, levelNumber } = parsePath(pathname);
+    setScreen(initialScreen);
+    if (initialScreen === "progression-play" && levelNumber != null) {
+      const level = ALL_LEVELS.find((l) => l.number === levelNumber);
+      if (level) setSelectedLevel(level);
+    }
+    window.history.replaceState(
+      { screen: initialScreen, levelNumber: initialScreen === "progression-play" ? levelNumber : undefined },
+      "",
+      pathname
+    );
   }, []);
 
   useEffect(() => {
@@ -703,7 +832,10 @@ export default function App() {
         />
       )}
       {screen === "about" && (
-        <AboutScreen onBack={() => navigateTo("home")} />
+        <AboutScreen onBack={() => navigateTo("home")} onPrivacy={() => navigateTo("privacy")} />
+      )}
+      {screen === "privacy" && (
+        <PrivacyScreen onBack={() => navigateTo("about")} />
       )}
       {screen === "settings" && (
         <SettingsScreen onBack={() => navigateTo("home")} />
