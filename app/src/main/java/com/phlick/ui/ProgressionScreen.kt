@@ -91,8 +91,10 @@ fun ProgressionScreen(
             )
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
                     text = "Level ${level.number}: ${level.name}",
@@ -567,8 +569,11 @@ fun LevelSelectionScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         text = "Level ${level.number}: ${level.name}",

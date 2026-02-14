@@ -20,6 +20,7 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+web/.env
 
 # Logs and OS
 *.log

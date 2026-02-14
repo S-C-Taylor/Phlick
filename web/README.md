@@ -30,3 +30,13 @@ Output is in `dist/`. Configure Amplify to build with `npm run build` and publis
 - **Constants**: `PROGRESSION_WARMUP_TICKS`, `PRAYER_DRAIN_TICKS`, `INITIAL_PRAYER_POINTS` match shared.
 
 Optional later: consume the Kotlin/JS build from the `shared` module instead of the TS port for a single source of truth at runtime.
+
+## Feedback form (optional)
+
+The **Feedback** page (About → Feedback, or `/feedback`) submits to [Formspree](https://formspree.io). Your reply-to email is set only in Formspree’s dashboard, so it never appears in the site or in crawlers.
+
+1. Create a free form at [formspree.io](https://formspree.io) and set your email as the notification address.
+2. Copy the form ID from the form’s endpoint (e.g. `https://formspree.io/f/abcxyz` → `abcxyz`).
+3. Set `VITE_FEEDBACK_FORM_ID=abcxyz` in your build env (e.g. `.env` or your host’s env). Rebuild.
+
+If `VITE_FEEDBACK_FORM_ID` is not set, the Feedback page shows “Feedback form is not configured” and no email is exposed.

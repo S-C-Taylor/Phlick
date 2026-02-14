@@ -19,9 +19,9 @@ import { logEvent } from "./core/analytics";
 import { MonsterView } from "./components/MonsterView";
 import "./App.css";
 
-type Screen = "home" | "about" | "settings" | "privacy" | "progression-list" | "progression-play";
+type Screen = "home" | "about" | "settings" | "privacy" | "feedback" | "progression-list" | "progression-play";
 
-function AboutScreen({ onBack, onPrivacy }: { onBack: () => void; onPrivacy?: () => void }) {
+function AboutScreen({ onBack, onPrivacy, onFeedback }: { onBack: () => void; onPrivacy?: () => void; onFeedback?: () => void }) {
   return (
     <div className="app">
       <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 0.25rem" }}>
@@ -49,6 +49,11 @@ function AboutScreen({ onBack, onPrivacy }: { onBack: () => void; onPrivacy?: ()
         </div>
       </div>
 
+      {onFeedback && (
+        <button type="button" className="btn btn-outline" style={{ width: "100%", marginBottom: "0.5rem" }} onClick={onFeedback}>
+          Feedback
+        </button>
+      )}
       {onPrivacy && (
         <a
           href="/privacy"
@@ -145,6 +150,131 @@ function PrivacyScreen({ onBack }: { onBack: () => void }) {
       <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
         Back
       </button>
+    </div>
+  );
+}
+
+const FEEDBACK_FORM_ID = import.meta.env.VITE_FEEDBACK_FORM_ID;
+
+function FeedbackScreen({ onBack }: { onBack: () => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!FEEDBACK_FORM_ID || !message.trim()) return;
+    setStatus("sending");
+    try {
+      const res = await fetch(`https://formspree.io/f/${FEEDBACK_FORM_ID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          _replyto: email.trim() || undefined,
+          message: message.trim(),
+        }),
+      });
+      if (res.ok) {
+        setStatus("success");
+        setName("");
+        setEmail("");
+        setMessage("");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (!FEEDBACK_FORM_ID) {
+    return (
+      <div className="app">
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 1rem" }}>
+          Feedback
+        </h1>
+        <div className="card" style={{ marginBottom: "1rem" }}>
+          <p className="card-muted" style={{ margin: 0 }}>
+            Feedback form is not configured. Please contact the site owner.
+          </p>
+        </div>
+        <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
+          Back
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      <h1 style={{ fontSize: "1.75rem", fontWeight: 600, color: "var(--primary)", margin: "0 0 0.25rem" }}>
+        Feedback
+      </h1>
+      <p style={{ color: "var(--on-surface-variant)", margin: "0 0 1rem", fontSize: "0.875rem" }}>
+        Send a message to the developer. Your email is never shown on the site.
+      </p>
+
+      {status === "success" ? (
+        <div className="card" style={{ marginBottom: "1rem" }}>
+          <p style={{ margin: 0, color: "var(--primary)", fontWeight: 600 }}>Thanks for your feedback.</p>
+          <p className="card-muted" style={{ margin: "0.5rem 0 0" }}>We&apos;ll get back to you if you left an email.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="card" style={{ marginBottom: "1rem" }}>
+          <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            Name <span className="card-muted">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem", marginBottom: "0.75rem", borderRadius: 4, border: "1px solid var(--surface-variant)", background: "var(--background)", color: "var(--on-background)", boxSizing: "border-box" }}
+            placeholder="Your name"
+          />
+          <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            Email <span className="card-muted">(optional, for reply)</span>
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem", marginBottom: "0.75rem", borderRadius: 4, border: "1px solid var(--surface-variant)", background: "var(--background)", color: "var(--on-background)", boxSizing: "border-box" }}
+            placeholder="your@email.com"
+          />
+          <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            Message <span style={{ color: "var(--error)" }}>*</span>
+          </label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            required
+            rows={4}
+            style={{ width: "100%", padding: "0.5rem", marginBottom: "0.75rem", borderRadius: 4, border: "1px solid var(--surface-variant)", background: "var(--background)", color: "var(--on-background)", resize: "vertical", boxSizing: "border-box" }}
+            placeholder="Your feedback or question..."
+          />
+          {status === "error" && (
+            <p style={{ margin: "0 0 0.75rem", color: "var(--error)", fontSize: "0.85rem" }}>
+              Something went wrong. Please try again later.
+            </p>
+          )}
+          <div style={{ display: "flex", gap: 12 }}>
+            <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={onBack}>
+              Back
+            </button>
+            <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={status === "sending" || !message.trim()}>
+              {status === "sending" ? "Sending…" : "Send"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {status !== "success" && (
+        <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onBack}>
+          Back
+        </button>
+      )}
     </div>
   );
 }
@@ -732,6 +862,7 @@ type HistoryState = { screen: Screen; levelNumber?: number } | null;
 
 function pathForScreen(screen: Screen, levelNumber?: number): string {
   if (screen === "privacy") return "/privacy";
+  if (screen === "feedback") return "/feedback";
   if (screen === "about") return "/about";
   if (screen === "settings") return "/settings";
   if (screen === "progression-play" && levelNumber != null) return "/play/" + levelNumber;
@@ -742,6 +873,7 @@ function pathForScreen(screen: Screen, levelNumber?: number): string {
 function parsePath(pathname: string): { screen: Screen; levelNumber?: number } {
   const p = pathname.replace(/\/$/, "") || "/";
   if (p === "/privacy") return { screen: "privacy" };
+  if (p === "/feedback") return { screen: "feedback" };
   if (p === "/about") return { screen: "about" };
   if (p === "/settings") return { screen: "settings" };
   const playMatch = p.match(/^\/play\/(\d+)$/);
@@ -832,10 +964,13 @@ export default function App() {
         />
       )}
       {screen === "about" && (
-        <AboutScreen onBack={() => navigateTo("home")} onPrivacy={() => navigateTo("privacy")} />
+        <AboutScreen onBack={() => navigateTo("home")} onPrivacy={() => navigateTo("privacy")} onFeedback={() => navigateTo("feedback")} />
       )}
       {screen === "privacy" && (
         <PrivacyScreen onBack={() => navigateTo("about")} />
+      )}
+      {screen === "feedback" && (
+        <FeedbackScreen onBack={() => navigateTo("about")} />
       )}
       {screen === "settings" && (
         <SettingsScreen onBack={() => navigateTo("home")} />
