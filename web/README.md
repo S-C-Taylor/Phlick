@@ -40,3 +40,19 @@ The **Feedback** page (About → Feedback, or `/feedback`) submits to [Formspree
 3. Set `VITE_FEEDBACK_FORM_ID=abcxyz` in your build env (e.g. `.env` or your host’s env). Rebuild.
 
 If `VITE_FEEDBACK_FORM_ID` is not set, the Feedback page shows “Feedback form is not configured” and no email is exposed.
+
+## Firebase Analytics (optional)
+
+Events (level_started, level_completed, etc.) can be sent to **Firebase Analytics** so web and Android data live in the same project.
+
+1. In [Firebase Console](https://console.firebase.google.com), open your project (the same one used for the Android app).
+2. **Add a Web app**: Project settings → Your apps → Add app → **Web** (</>). Register the app and copy the `firebaseConfig` object.
+3. Set these env vars (e.g. in `web/.env` or your host's env) from that config:
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID`
+4. Rebuild and deploy. Events will appear in Firebase Analytics (and in the same GA4 property as Android if linked).

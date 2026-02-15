@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Required for Android 13+ when using Firebase Analytics (which may use advertising ID) -->
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- We do not use advertising ID. Declare "No" in Play Console (App content → Advertising ID).
+         This prevents any dependency from adding AD_ID; Analytics events still work without it. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
