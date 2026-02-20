@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "phlick_settings")
 
+private val KEY_HIGHEST_LEVEL_COMPLETED = intPreferencesKey("highest_level_completed")
 private val KEY_TUTORIAL_SEEN_LEVELS = stringSetPreferencesKey("tutorial_seen_levels")
 private val KEY_RANDOM_LATENCY_ENABLED = booleanPreferencesKey("random_latency_enabled")
 private val KEY_RANDOM_LATENCY_MS_MIN = intPreferencesKey("random_latency_ms_min")
@@ -43,6 +44,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShowTickBar(show: Boolean) {
         context.dataStore.edit { it[KEY_SHOW_TICK_BAR] = show }
+    }
+
+    /** Highest progression level number the user has completed (0 = none; level N unlocked when N <= this + 1). */
+    val highestLevelCompleted: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_HIGHEST_LEVEL_COMPLETED] ?: 0
+    }
+
+    suspend fun setHighestLevelCompleted(levelNumber: Int) {
+        context.dataStore.edit {
+            val current = it[KEY_HIGHEST_LEVEL_COMPLETED] ?: 0
+            it[KEY_HIGHEST_LEVEL_COMPLETED] = maxOf(current, levelNumber)
+        }
     }
 
     /** Level numbers for which the guided tutorial has been shown (e.g. 1, 3, 9). */

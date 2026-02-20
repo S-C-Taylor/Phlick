@@ -12,6 +12,8 @@ import {
   TUTORIAL_LEVELS,
   loadTutorialSeenLevels,
   saveTutorialSeen,
+  loadHighestLevelCompleted,
+  saveHighestLevelCompleted,
   getTutorialForLevel,
   type AppSettings,
 } from "./core/settings";
@@ -428,7 +430,15 @@ function Home({
   );
 }
 
-function ProgressionListScreen({ onSelect, onBack }: { onSelect: (l: Level) => void; onBack: () => void }) {
+function ProgressionListScreen({
+  highestLevelCompleted,
+  onSelect,
+  onBack,
+}: {
+  highestLevelCompleted: number;
+  onSelect: (l: Level) => void;
+  onBack: () => void;
+}) {
   return (
     <div className="app">
       <div className="row" style={{ marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
@@ -438,22 +448,29 @@ function ProgressionListScreen({ onSelect, onBack }: { onSelect: (l: Level) => v
         </button>
       </div>
       <ul className="level-list">
-        {ALL_LEVELS.map((level) => (
-          <li key={level.number}>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => onSelect(level)}
-              style={{ textAlign: "left", alignItems: "flex-start" }}
-            >
-              <strong>Level {level.number}: {level.name}</strong>
-              <span className="level-desc">{level.description}</span>
-              <span className="level-meta">
-                Survive {level.ticksToSurvive} ticks • {level.monsters.length} monster(s)
-              </span>
-            </button>
-          </li>
-        ))}
+        {ALL_LEVELS.map((level) => {
+          const isUnlocked = level.number <= highestLevelCompleted + 1;
+          return (
+            <li key={level.number} className={isUnlocked ? undefined : "level-item--locked"}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => isUnlocked && onSelect(level)}
+                disabled={!isUnlocked}
+                style={{ textAlign: "left", alignItems: "flex-start" }}
+              >
+                <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                  <strong>Level {level.number}: {level.name}</strong>
+                  {!isUnlocked && <span className="level-locked-label">Locked</span>}
+                </span>
+                <span className="level-desc">{level.description}</span>
+                <span className="level-meta">
+                  Survive {level.ticksToSurvive} ticks • {level.monsters.length} monster(s)
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
       <button type="button" className="btn btn-outline" style={{ width: "100%", marginTop: "1rem" }} onClick={onBack}>
         Back to Menu
@@ -485,6 +502,11 @@ function LevelCompleteDialog({
       <div className="card">
         <h2>Level Complete!</h2>
         <p className="muted">You survived {level.name}</p>
+        {nextLevel && (
+          <p style={{ margin: "0 0 0.5rem", color: "var(--on-primary)", fontSize: "1rem" }}>
+            Level {nextLevel.number} unlocked!
+          </p>
+        )}
         <div className="stats-panel" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 8, padding: 16 }}>
           <div className="stat-row">
             <span className="muted">Attacks blocked</span>
@@ -924,6 +946,7 @@ export default function App() {
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [progressionKey, setProgressionKey] = useState(0);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [highestLevelCompleted, setHighestLevelCompleted] = useState(loadHighestLevelCompleted);
   const pendingBackRef = useRef<HistoryState>(null);
 
   const navigateTo = useCallback((s: Screen) => {
@@ -1009,6 +1032,7 @@ export default function App() {
       )}
       {screen === "progression-list" && (
         <ProgressionListScreen
+          highestLevelCompleted={highestLevelCompleted}
           onSelect={(l) => {
             setSelectedLevel(l);
             setProgressionKey((k) => k + 1);
@@ -1024,6 +1048,11 @@ export default function App() {
             key={`${selectedLevel.number}-${progressionKey}`}
             level={selectedLevel}
             onLevelCompleteNext={(next) => {
+              const completedLevel = selectedLevel;
+              if (completedLevel) {
+                saveHighestLevelCompleted(completedLevel.number);
+                setHighestLevelCompleted((prev) => Math.max(prev, completedLevel.number));
+              }
               if (next) {
                 setSelectedLevel(next);
                 setProgressionKey((k) => k + 1);

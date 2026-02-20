@@ -9,6 +9,7 @@ export interface AppSettings {
 
 const STORAGE_KEY = "phlick_settings";
 const TUTORIAL_SEEN_KEY = "phlick_tutorial_seen";
+const HIGHEST_LEVEL_COMPLETED_KEY = "phlick_highest_level_completed";
 
 const defaults: AppSettings = {
   randomLatencyEnabled: false,
@@ -40,6 +41,29 @@ export function loadSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // ignore
+  }
+}
+
+/** Highest progression level number the user has completed (0 = none; level N unlocked when N <= this + 1). */
+export function loadHighestLevelCompleted(): number {
+  try {
+    const raw = localStorage.getItem(HIGHEST_LEVEL_COMPLETED_KEY);
+    if (raw == null) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function saveHighestLevelCompleted(levelNumber: number): void {
+  try {
+    const current = loadHighestLevelCompleted();
+    if (levelNumber > current) {
+      localStorage.setItem(HIGHEST_LEVEL_COMPLETED_KEY, String(levelNumber));
+    }
   } catch {
     // ignore
   }

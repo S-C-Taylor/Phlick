@@ -27,11 +27,15 @@ class PrayerFlickViewModel(
     val tutorialSeenLevels: StateFlow<Set<Int>> = settingsRepository.tutorialSeenLevels
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val highestLevelCompleted: StateFlow<Int> = settingsRepository.highestLevelCompleted
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0)
+
     private var levelStartTimeMs: Long = 0L
 
     init {
         viewModelScope.launch {
             gameHolder.levelComplete.collect { level ->
+                viewModelScope.launch { settingsRepository.setHighestLevelCompleted(level.number) }
                 val durationSeconds = ((System.currentTimeMillis() - levelStartTimeMs) / 1000).toInt().coerceAtLeast(0)
                 val s = settings.value
                 PhlickAnalytics.logEvent(

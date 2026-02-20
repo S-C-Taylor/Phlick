@@ -60,8 +60,10 @@ fun ProgressionScreen(
 
     if (level == null) {
         BackHandler { onBackToMenu() }
+        val highestLevelCompleted by viewModel.highestLevelCompleted.collectAsState(initial = 0)
         LevelSelectionScreen(
-            onSelectLevel = { level -> viewModel.selectLevel(level) },
+            highestLevelCompleted = highestLevelCompleted,
+            onSelectLevel = { l -> viewModel.selectLevel(l) },
             onBack = onBackToMenu
         )
         return
@@ -533,6 +535,7 @@ fun ProgressionScreen(
 
 @Composable
 fun LevelSelectionScreen(
+    highestLevelCompleted: Int,
     onSelectLevel: (com.phlick.game.Level) -> Unit,
     onBack: () -> Unit
 ) {
@@ -570,13 +573,24 @@ fun LevelSelectionScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
         com.phlick.game.Levels.allLevels.forEach { level ->
+            val isUnlocked = level.number <= highestLevelCompleted + 1
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSelectLevel(level) },
+                    .then(
+                        if (isUnlocked) Modifier.clickable { onSelectLevel(level) }
+                        else Modifier
+                    ),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = if (isUnlocked)
+                        MaterialTheme.colorScheme.surfaceVariant
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    contentColor = if (isUnlocked)
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             ) {
                 Column(
@@ -586,20 +600,36 @@ fun LevelSelectionScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
-                        text = "Level ${level.number}: ${level.name}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Level ${level.number}: ${level.name}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (isUnlocked) MaterialTheme.colorScheme.onSurface
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        if (!isUnlocked) {
+                            Text(
+                                text = "Locked",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
                     Text(
                         text = level.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isUnlocked) MaterialTheme.colorScheme.onSurfaceVariant
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                     Text(
                         text = "Survive ${level.ticksToSurvive} ticks • ${level.monsters.size} monster(s)",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = if (isUnlocked) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -648,6 +678,16 @@ fun LevelCompleteDialog(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary
             )
+
+            val nextLevelNumber = level.number + 1
+            val hasNextLevel = com.phlick.game.Levels.allLevels.any { it.number == nextLevelNumber }
+            if (hasNextLevel) {
+                Text(
+                    text = "Level $nextLevelNumber unlocked!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.95f)
+                )
+            }
 
             // Statistics panel – single column of label/value rows (gold card, light tint panel like web)
             Card(
