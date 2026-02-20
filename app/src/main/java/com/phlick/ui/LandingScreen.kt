@@ -40,7 +40,7 @@ fun LandingScreen(
     modifier: Modifier = Modifier
 ) {
     var showComingSoonDialog by remember { mutableStateOf(false) }
-    
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -49,11 +49,11 @@ fun LandingScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+                .padding(20.dp)
         ) {
             // Title
             Text(
@@ -67,7 +67,7 @@ fun LandingScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Mode selection cards (Progression first)
             Card(
@@ -78,9 +78,9 @@ fun LandingScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Progression Mode",
@@ -115,9 +115,9 @@ fun LandingScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = "Sandbox Mode",
@@ -144,7 +144,7 @@ fun LandingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
                 onClick = onSettings,
@@ -162,10 +162,10 @@ fun LandingScreen(
             }
 
             // Extra bottom space so About button stays clear of navigation bar
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
-    
+
     // Coming soon dialog
     if (showComingSoonDialog) {
         Box(
