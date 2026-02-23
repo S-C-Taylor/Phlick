@@ -11,7 +11,7 @@ if (file("google-services.json").exists()) {
 // Semantic version (MAJOR.MINOR.PATCH); versionCode is derived for Play Store
 val versionMajor = 1
 val versionMinor = 0
-val versionPatch = 6
+val versionPatch = 7
 val versionNameSemantic = "$versionMajor.$versionMinor.$versionPatch"
 val versionCodeSemantic = versionMajor * 10000 + versionMinor * 100 + versionPatch
 
