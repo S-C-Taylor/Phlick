@@ -676,6 +676,7 @@ function ProgressionPlayScreen({
   const [showTutorial, setShowTutorial] = useState(() =>
     TUTORIAL_LEVELS.has(level.number) && !loadTutorialSeenLevels().has(level.number)
   );
+  const [feedbackToShow, setFeedbackToShow] = useState<"Correct" | "Wrong" | null>(null);
   const engine = useTickEngine(createProgressionState(level, false), {
     randomLatencyEnabled: settings.randomLatencyEnabled,
     randomLatencyMsMax: settings.randomLatencyMsMax,
@@ -725,6 +726,14 @@ function ProgressionPlayScreen({
       });
     }
   }, [levelFailed, level.number, settings.showTickBar, settings.randomLatencyEnabled]);
+
+  useEffect(() => {
+    if (state.lastResult === "Correct" || state.lastResult === "Wrong") {
+      setFeedbackToShow(state.lastResult);
+      const t = setTimeout(() => setFeedbackToShow(null), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [state.lastResult]);
 
   if (levelComplete) {
     return (
@@ -858,10 +867,10 @@ function ProgressionPlayScreen({
         </div>
 
         <div className="feedback-box">
-          {state.lastResult === "Correct" && (
+          {feedbackToShow === "Correct" && (
             <div className="feedback-card correct">✓ Correct!</div>
           )}
-          {state.lastResult === "Wrong" && (
+          {feedbackToShow === "Wrong" && (
             <div className="feedback-card wrong">✗ Wrong! -1 Life</div>
           )}
         </div>
