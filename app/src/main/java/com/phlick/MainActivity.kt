@@ -21,14 +21,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Make system bars blend with our OSRS theme instead of bright white.
+        // Make system bars match our dark OSRS theme (avoid garish white bars).
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
+        val statusBarColor = 0xFF2A1810.toInt() // Theme background dark brown
+        window.statusBarColor = statusBarColor
+        window.navigationBarColor = statusBarColor
         val settingsRepository = SettingsRepository(applicationContext)
         setContent {
             Theme {

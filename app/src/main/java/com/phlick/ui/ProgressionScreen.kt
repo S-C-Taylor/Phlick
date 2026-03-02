@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -78,12 +80,14 @@ fun ProgressionScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
+            .padding(12.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
         // Level info card
         Card(
@@ -96,12 +100,12 @@ fun ProgressionScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
+                    .padding(8.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
                     text = "Level ${level.number}: ${level.name}",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
@@ -121,7 +125,7 @@ fun ProgressionScreen(
             )
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
@@ -160,7 +164,7 @@ fun ProgressionScreen(
             Card(
                 modifier = Modifier
                     .weight(1f)
-                    .height(64.dp),
+                    .height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -169,8 +173,8 @@ fun ProgressionScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -181,7 +185,7 @@ fun ProgressionScreen(
                     repeat(3) { index ->
                         Box(
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(14.dp)
                                 .clip(CircleShape)
                                 .background(
                                     if (index < levelState.lives)
@@ -198,7 +202,7 @@ fun ProgressionScreen(
             Card(
                 modifier = Modifier
                     .weight(1f)
-                    .height(64.dp),
+                    .height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -207,7 +211,7 @@ fun ProgressionScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
+                        .padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -246,7 +250,7 @@ fun ProgressionScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // Monsters
         Row(
@@ -273,13 +277,13 @@ fun ProgressionScreen(
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Player prayer
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -288,20 +292,20 @@ fun ProgressionScreen(
                 text = "Active Prayer",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Prayer buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
                 onClick = { viewModel.setPrayer(Prayer.Magic) },
-                modifier = Modifier.weight(1f).height(56.dp),
+                modifier = Modifier.weight(1f).height(48.dp),
                 enabled = state.isRunning && state.prayerPoints > 0,
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -319,7 +323,7 @@ fun ProgressionScreen(
             }
             Button(
                 onClick = { viewModel.setPrayer(Prayer.Missiles) },
-                modifier = Modifier.weight(1f).height(56.dp),
+                modifier = Modifier.weight(1f).height(48.dp),
                 enabled = state.isRunning && state.prayerPoints > 0,
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -338,7 +342,7 @@ fun ProgressionScreen(
         }
 
         // Feedback
-        Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.height(32.dp), contentAlignment = Alignment.Center) {
             when (state.lastResult) {
                 FlickResult.Correct -> Card(
                     colors = CardDefaults.cardColors(
@@ -348,9 +352,9 @@ fun ProgressionScreen(
                 ) {
                     Text(
                         text = "✓ Correct!",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
                 FlickResult.Wrong -> Card(
@@ -361,9 +365,9 @@ fun ProgressionScreen(
                 ) {
                     Text(
                         text = "✗ Wrong! -1 Life",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
                 null -> {}
@@ -372,18 +376,23 @@ fun ProgressionScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Control buttons (hidden when a dialog is shown)
+        // Control buttons (hidden when a dialog is shown) – fixed height so Quit isn't squished
         if (!levelState.isLevelComplete && !levelState.isLevelFailed) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedButton(
                     onClick = {
                         viewModel.gameHolder.quitProgression()
                         onBackToMenu()
                     },
-                    modifier = Modifier.weight(1f).height(56.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 56.dp),
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text("Quit")
@@ -391,7 +400,9 @@ fun ProgressionScreen(
                 if (!state.isRunning) {
                     Button(
                         onClick = { viewModel.startSelectedLevel() },
-                        modifier = Modifier.weight(1f).height(56.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 56.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,

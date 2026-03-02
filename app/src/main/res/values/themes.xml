@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Dark brown #2A1810 to match app background; light status/nav bar icons on dark -->
+    <color name="phlick_dark_brown">#FF2A1810</color>
     <style name="Theme.Phlick" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:statusBarColor">@color/phlick_dark_brown</item>
+        <item name="android:navigationBarColor">@color/phlick_dark_brown</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:colorBackground">@color/phlick_dark_brown</item>
     </style>
 </resources>
