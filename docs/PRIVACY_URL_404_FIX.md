@@ -1,12 +1,27 @@
 # Fix “Privacy policy URL returns 404” (Google Play)
 
-Google’s crawler requests **https://phlick.net/privacy** directly. If the server returns **404**, Play Console rejects the app even though the page works when you open it in the browser (client-side routing).
+Google’s crawler requests **https://www.phlick.net/privacy** directly. If the server returns **404**, Play Console rejects the app even though the page works when you open it in the browser (client-side routing).
 
-**Cause:** The app is a single-page app (SPA). The path `/privacy` only exists in the client; there is no real file at `/privacy` on the server. The host must be configured to **serve `index.html` for all paths** and return **200**, not 404.
+**Cause:** The app is a single-page app (SPA). The path `/privacy` only exists in the client; there is no real file at `/privacy` on the server.
 
 ---
 
-## Fix by hosting platform
+## Build fix (recommended): physical paths
+
+The repo now includes a **Vite plugin** that, on each build, copies `index.html` into **`dist/privacy/index.html`**, **`dist/about/index.html`**, and other key routes. So after deploy, the server has a real file at `/privacy/` (and `/privacy` on hosts that do directory index).
+
+**What you need to do:**
+1. Pull the latest code (with `vite.config.ts` plugin and this doc).
+2. Run **`npm run build`** in `web/` (or let your CI/Amplify build do it).
+3. **Redeploy** the `web/dist` (or build output) to Amplify so the new `privacy/index.html` is live.
+4. Check: **`curl -I https://www.phlick.net/privacy`** and **`curl -I https://www.phlick.net/privacy/`** — one or both should return **200**.
+5. In Play Console, keep the privacy URL as **https://www.phlick.net/privacy** and resubmit.
+
+If your host serves `privacy/index.html` for the path `/privacy` or `/privacy/`, this removes the need to rely on rewrite rules for the privacy URL.
+
+---
+
+## Fix by hosting platform (rewrite rules)
 
 ### AWS Amplify (most likely if phlick.net is on Amplify)
 
