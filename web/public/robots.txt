@@ -1,0 +1,6 @@
+# Allow crawlers; SPA routes are served by index.html
+User-agent: *
+Allow: /
+
+# Optional: add Sitemap when you have a canonical base URL, e.g.:
+# Sitemap: https://your-domain.com/sitemap.xml
