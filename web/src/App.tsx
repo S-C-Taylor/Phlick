@@ -373,6 +373,18 @@ function Home({
   onSettings?: () => void;
 }) {
   const [showSandboxComingSoon, setShowSandboxComingSoon] = useState(false);
+  const [showAndroidPromo, setShowAndroidPromo] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") {
+      setShowAndroidPromo(false);
+      return;
+    }
+    const ua = navigator.userAgent || (navigator as any).vendor || "";
+    const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
+    const isNarrow = window.innerWidth <= 900;
+    setShowAndroidPromo(isMobileUA || isNarrow);
+  }, []);
 
   return (
     <div className="app">
@@ -413,6 +425,30 @@ function Home({
         <button type="button" className="btn btn-outline" style={{ width: "100%" }} onClick={onAbout}>
           About
         </button>
+      )}
+
+      {showAndroidPromo && (
+        <div style={{ marginTop: "0.75rem", textAlign: "center", fontSize: "0.85rem", color: "var(--on-surface-variant)" }}>
+          <span style={{ display: "block", marginBottom: "0.25rem" }}>
+            On Android? Get Phlick on Google Play.
+          </span>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.phlick"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "0.35rem 0.9rem",
+              fontSize: "0.85rem",
+            }}
+          >
+            <span style={{ fontSize: "1.1rem" }}>▶</span>
+            <span>Google Play</span>
+          </a>
+        </div>
       )}
 
       {showSandboxComingSoon && (
